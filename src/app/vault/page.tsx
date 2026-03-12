@@ -1,23 +1,39 @@
 'use client';
 
-import { useState } from 'react';
-import { Package, Grid, List, Filter, Swords } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Package, Grid, List, Swords, Crown, Gem, Shield, Star } from 'lucide-react';
+
+function useScrollReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setIsVisible(true); }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return { ref, isVisible };
+}
+
+function RevealSection({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const { ref, isVisible } = useScrollReveal();
+  return <div ref={ref} className={`transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{ transitionDelay: `${delay}ms` }}>{children}</div>;
+}
 
 type Tab = 'packs' | 'cards';
 
 const userPacks = [
-  { id: '1', name: 'Starter Pack', price: 10, boughtAt: '2026-03-10', opened: false },
-  { id: '2', name: 'Elite Box', price: 50, boughtAt: '2026-03-10', opened: false },
-  { id: '3', name: 'Legendary Case', price: 100, boughtAt: '2026-03-11', opened: true },
+  { id: '1', name: 'Starter Pack', price: 10, boughtAt: '2026-03-10', opened: false, emoji: '🎁' },
+  { id: '2', name: 'Elite Box', price: 50, boughtAt: '2026-03-10', opened: false, emoji: '💎' },
+  { id: '3', name: 'Legendary Case', price: 100, boughtAt: '2026-03-11', opened: true, emoji: '👑' },
 ];
 
 const userCards = [
-  { id: '1', name: 'Charizard', rarity: 'legendary', image: '', pack: 'Legendary Case', acquiredAt: '2026-03-11' },
-  { id: '2', name: 'Pikachu', rarity: 'rare', image: '', pack: 'Elite Box', acquiredAt: '2026-03-10' },
-  { id: '3', name: 'Bulbasaur', rarity: 'common', image: '', pack: 'Starter Pack', acquiredAt: '2026-03-10' },
-  { id: '4', name: 'Mewtwo', rarity: 'epic', image: '', pack: 'Legendary Case', acquiredAt: '2026-03-11' },
-  { id: '5', name: 'Squirtle', rarity: 'uncommon', image: '', pack: 'Starter Pack', acquiredAt: '2026-03-10' },
-  { id: '6', name: 'Eevee', rarity: 'rare', image: '', pack: 'Elite Box', acquiredAt: '2026-03-10' },
+  { id: '1', name: 'Charizard', rarity: 'legendary', pack: 'Legendary Case', emoji: '🔥', gradient: 'from-orange-500 to-red-600' },
+  { id: '2', name: 'Pikachu', rarity: 'rare', pack: 'Elite Box', emoji: '⚡', gradient: 'from-yellow-500 to-orange-600' },
+  { id: '3', name: 'Bulbasaur', rarity: 'common', pack: 'Starter Pack', emoji: '🌿', gradient: 'from-green-500 to-emerald-600' },
+  { id: '4', name: 'Mewtwo', rarity: 'epic', pack: 'Legendary Case', emoji: '🔮', gradient: 'from-purple-500 to-pink-600' },
+  { id: '5', name: 'Squirtle', rarity: 'uncommon', pack: 'Starter Pack', emoji: '💧', gradient: 'from-blue-500 to-cyan-600' },
+  { id: '6', name: 'Eevee', rarity: 'rare', pack: 'Elite Box', emoji: '💜', gradient: 'from-violet-500 to-purple-600' },
 ];
 
 export default function Vault() {
@@ -27,196 +43,140 @@ export default function Vault() {
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
-      case 'legendary': return 'text-yellow-400 border-yellow-400/30';
-      case 'epic': return 'text-purple-400 border-purple-400/30';
-      case 'rare': return 'text-blue-400 border-blue-400/30';
-      case 'uncommon': return 'text-green-400 border-green-400/30';
-      default: return 'text-gray-400 border-gray-400/30';
+      case 'legendary': return { bg: 'bg-yellow-500/20', text: 'text-yellow-400', border: 'border-yellow-400/30', icon: Crown };
+      case 'epic': return { bg: 'bg-purple-500/20', text: 'text-purple-400', border: 'border-purple-400/30', icon: Gem };
+      case 'rare': return { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-400/30', icon: Star };
+      case 'uncommon': return { bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-400/30', icon: Shield };
+      default: return { bg: 'bg-gray-500/20', text: 'text-gray-400', border: 'border-gray-400/30', icon: Package };
     }
   };
 
-  const filteredCards = userCards.filter(card => 
-    rarityFilter === 'all' || card.rarity === rarityFilter
-  );
-
-  const filteredPacks = userPacks.filter(pack => 
-    rarityFilter === 'all' || pack.price <= (rarityFilter === 'legendary' ? 100 : rarityFilter === 'rare' ? 50 : 10)
-  );
+  const filteredCards = userCards.filter(card => rarityFilter === 'all' || card.rarity === rarityFilter);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold mb-1">Vault</h1>
-        <p className="text-[var(--text-secondary)]">Your collection of packs and cards</p>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] p-4">
-          <p className="text-[var(--text-secondary)] text-sm">Total Packs</p>
-          <p className="text-2xl font-bold">{userPacks.length}</p>
-        </div>
-        <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] p-4">
-          <p className="text-[var(--text-secondary)] text-sm">Total Cards</p>
-          <p className="text-2xl font-bold">{userCards.length}</p>
-        </div>
-        <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] p-4">
-          <p className="text-[var(--text-secondary)] text-sm">Legendary</p>
-          <p className="text-2xl font-bold text-yellow-400">{userCards.filter(c => c.rarity === 'legendary').length}</p>
-        </div>
-        <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] p-4">
-          <p className="text-[var(--text-secondary)] text-sm">Est. Value</p>
-          <p className="text-2xl font-bold text-green-400">$0</p>
+    <div className="min-h-screen pb-20">
+      <div className="py-8 border-b border-[var(--border)] mb-8">
+        <div className="max-w-6xl mx-auto px-6">
+          <RevealSection>
+            <h1 className="font-display text-5xl font-black mb-2">Vault</h1>
+            <p className="text-[var(--text-muted)] text-lg">Your collection of packs and cards</p>
+          </RevealSection>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setActiveTab('cards')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'cards' 
-                ? 'bg-orange-500 text-white' 
-                : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:text-[var(--text)]'
-            }`}
-          >
-            Cards ({userCards.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('packs')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'packs' 
-                ? 'bg-orange-500 text-white' 
-                : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:text-[var(--text)]'
-            }`}
-          >
-            Packs ({userPacks.length})
-          </button>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Filter */}
-          <select
-            value={rarityFilter}
-            onChange={(e) => setRarityFilter(e.target.value)}
-            className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm"
-          >
-            <option value="all">All Rarities</option>
-            <option value="legendary">Legendary</option>
-            <option value="epic">Epic</option>
-            <option value="rare">Rare</option>
-            <option value="uncommon">Uncommon</option>
-            <option value="common">Common</option>
-          </select>
-
-          {/* View Toggle */}
-          <div className="flex bg-[var(--bg-secondary)] rounded-lg p-1">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 rounded ${viewMode === 'grid' ? 'bg-[var(--bg-hover)]' : ''}`}
-            >
-              <Grid size={18} />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-2 rounded ${viewMode === 'list' ? 'bg-[var(--bg-hover)]' : ''}`}
-            >
-              <List size={18} />
-            </button>
+      <div className="max-w-6xl mx-auto px-6">
+        <RevealSection delay={100}>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {[
+              { label: 'Total Packs', value: userPacks.length, icon: Package, color: 'text-accent' },
+              { label: 'Total Cards', value: userCards.length, icon: Gem, color: 'text-purple-400' },
+              { label: 'Legendary', value: userCards.filter(c => c.rarity === 'legendary').length, icon: Crown, color: 'text-yellow-400' },
+              { label: 'Est. Value', value: '$0', icon: Star, color: 'text-green-400' },
+            ].map((stat, i) => (
+              <div key={i} className="card p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <stat.icon size={16} className={stat.color} />
+                  <span className="text-xs text-[var(--text-muted)]">{stat.label}</span>
+                </div>
+                <p className="text-2xl font-black">{stat.value}</p>
+              </div>
+            ))}
           </div>
-        </div>
-      </div>
+        </RevealSection>
 
-      {/* Content */}
-      {activeTab === 'cards' ? (
-        <div className={viewMode === 'grid' 
-          ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
-          : "space-y-2"
-        }>
-          {filteredCards.map((card) => (
-            viewMode === 'grid' ? (
-              <div
-                key={card.id}
-                className={`bg-[var(--bg-secondary)] rounded-xl border ${getRarityColor(card.rarity)} overflow-hover relative group cursor-pointer`}
-              >
-                <div className="aspect-[3/4] bg-gradient-to-br from-orange-500/10 to-purple-500/10 flex items-center justify-center">
-                  <span className="text-4xl">🃏</span>
-                </div>
-                <div className="p-3">
-                  <p className={`font-semibold ${getRarityColor(card.rarity)}`}>{card.name}</p>
-                  <p className="text-xs text-[var(--text-secondary)]">{card.pack}</p>
-                </div>
-                {/* Quick Action */}
-                <button className="absolute top-2 right-2 bg-orange-500/80 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Swords size={14} />
+        <RevealSection delay={200}>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex gap-2">
+              {(['cards', 'packs'] as Tab[]).map((tab) => (
+                <button key={tab} onClick={() => setActiveTab(tab)} className={`px-6 py-3 rounded-xl font-bold transition-all ${activeTab === tab ? 'bg-[var(--accent-yellow)] text-black' : 'bg-[var(--bg-card)] text-[var(--text-muted)]'}`}>
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)} ({tab === 'cards' ? userCards.length : userPacks.length})
                 </button>
-              </div>
-            ) : (
-              <div
-                key={card.id}
-                className="flex items-center justify-between bg-[var(--bg-secondary)] rounded-lg p-4 border border-[var(--border)]"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500/20 to-purple-500/20 rounded-lg flex items-center justify-center">
-                    <span className="text-xl">🃏</span>
-                  </div>
-                  <div>
-                    <p className={`font-semibold ${getRarityColor(card.rarity)}`}>{card.name}</p>
-                    <p className="text-sm text-[var(--text-secondary)]">{card.pack}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className={`text-xs px-2 py-1 rounded border ${getRarityColor(card.rarity)}`}>
-                    {card.rarity}
-                  </span>
-                  <button className="bg-orange-500/20 text-orange-400 px-3 py-1 rounded-lg text-sm hover:bg-orange-500/30">
-                    Battle
-                  </button>
-                </div>
-              </div>
-            )
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {filteredPacks.map((pack) => (
-            <div
-              key={pack.id}
-              className="flex items-center justify-between bg-[var(--bg-secondary)] rounded-lg p-4 border border-[var(--border)]"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-orange-500/20 to-purple-500/20 rounded-lg flex items-center justify-center">
-                  <Package size={32} className="text-orange-400" />
-                </div>
-                <div>
-                  <p className="font-semibold">{pack.name}</p>
-                  <p className="text-sm text-[var(--text-secondary)]">Bought: {pack.boughtAt}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="font-bold">{pack.price} USDC</span>
-                {pack.opened ? (
-                  <span className="text-sm text-[var(--text-secondary)]">Opened</span>
-                ) : (
-                  <button className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors">
-                    Rip Open
-                  </button>
-                )}
+              ))}
+            </div>
+            <div className="flex items-center gap-3">
+              <select value={rarityFilter} onChange={(e) => setRarityFilter(e.target.value)} className="input">
+                <option value="all">All Rarities</option>
+                <option value="legendary">Legendary</option>
+                <option value="epic">Epic</option>
+                <option value="rare">Rare</option>
+                <option value="uncommon">Uncommon</option>
+                <option value="common">Common</option>
+              </select>
+              <div className="flex bg-[var(--bg-card)] rounded-lg p-1">
+                <button onClick={() => setViewMode('grid')} className={`p-2 rounded ${viewMode === 'grid' ? 'bg-[var(--bg-hover)]' : ''}`}><Grid size={20} /></button>
+                <button onClick={() => setViewMode('list')} className={`p-2 rounded ${viewMode === 'list' ? 'bg-[var(--bg-hover)]' : ''}`}><List size={20} /></button>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        </RevealSection>
 
-      {((activeTab === 'cards' && filteredCards.length === 0) || 
-        (activeTab === 'packs' && filteredPacks.length === 0)) && (
-        <div className="text-center py-12">
-          <Package size={48} className="mx-auto text-[var(--text-secondary)] mb-4" />
-          <p className="text-[var(--text-secondary)]">No {activeTab} found</p>
-        </div>
-      )}
+        {activeTab === 'cards' && (
+          <div className={viewMode === 'grid' ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4" : "space-y-3"}>
+            {filteredCards.map((card, i) => {
+              const rarity = getRarityColor(card.rarity);
+              const Icon = rarity.icon;
+              return (
+                <RevealSection key={card.id} delay={i * 50}>
+                  <div className={`card overflow-hidden group cursor-pointer ${viewMode === 'grid' ? '' : 'p-4'}`}>
+                    {viewMode === 'grid' ? (
+                      <>
+                        <div className={`aspect-[3/4] bg-gradient-to-br ${card.gradient} p-4 flex items-center justify-center relative`}>
+                          <span className="text-5xl filter drop-shadow-lg group-hover:scale-110 transition-transform">{card.emoji}</span>
+                          <div className={`absolute top-2 right-2 px-2 py-1 rounded ${rarity.bg} ${rarity.text} text-xs font-bold`}>{card.rarity}</div>
+                        </div>
+                        <div className="p-3">
+                          <p className={`font-bold ${rarity.text}`}>{card.name}</p>
+                          <p className="text-xs text-[var(--text-muted)]">{card.pack}</p>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 bg-gradient-to-br ${card.gradient} rounded-lg flex items-center justify-center`}><span className="text-xl">{card.emoji}</span></div>
+                          <div>
+                            <p className={`font-bold ${rarity.text}`}>{card.name}</p>
+                            <p className="text-sm text-[var(--text-muted)]">{card.pack}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className={`px-3 py-1 rounded ${rarity.bg} ${rarity.text} text-sm font-bold`}>{card.rarity}</span>
+                          <button className="btn btn-primary text-sm px-4 py-2"><Swords size={16} /> Battle</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </RevealSection>
+              );
+            })}
+          </div>
+        )}
+
+        {activeTab === 'packs' && (
+          <div className="space-y-3">
+            {userPacks.map((pack, i) => (
+              <RevealSection key={pack.id} delay={i * 50}>
+                <div className="card p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-[var(--accent-yellow)] to-[var(--accent-coral)] rounded-xl flex items-center justify-center text-3xl">{pack.emoji}</div>
+                    <div>
+                      <p className="font-bold text-lg">{pack.name}</p>
+                      <p className="text-sm text-[var(--text-muted)]">Bought: {pack.boughtAt}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="font-bold text-accent text-xl">{pack.price} USDC</span>
+                    {pack.opened ? (
+                      <span className="text-[var(--text-muted)]">Opened</span>
+                    ) : (
+                      <button className="btn btn-primary">Rip Open</button>
+                    )}
+                  </div>
+                </div>
+              </RevealSection>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

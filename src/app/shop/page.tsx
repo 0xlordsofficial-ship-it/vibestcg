@@ -1,7 +1,46 @@
 'use client';
 
-import { useState } from 'react';
-import { Package, Filter, Search } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Search, Filter, Sparkles } from 'lucide-react';
+
+// Scroll reveal hook
+function useScrollReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, isVisible };
+}
+
+function RevealSection({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const { ref, isVisible } = useScrollReveal();
+  
+  return (
+    <div 
+      ref={ref} 
+      className={`transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  );
+}
 
 const packs = [
   { 
@@ -11,7 +50,10 @@ const packs = [
     description: 'Perfect for beginners. Contains common to rare cards.',
     dropRates: { common: 60, uncommon: 25, rare: 12, epic: 2.5, legendary: 0.5 },
     totalCards: 5,
-    image: '/packs/starter.png'
+    emoji: '🎁',
+    gradient: 'from-gray-400 to-slate-500',
+    featured: false,
+    stock: 999
   },
   { 
     id: '2', 
@@ -20,7 +62,10 @@ const packs = [
     description: 'Higher chances of rare and epic cards.',
     dropRates: { common: 30, uncommon: 35, rare: 25, epic: 8, legendary: 2 },
     totalCards: 5,
-    image: '/packs/elite.png'
+    emoji: '💎',
+    gradient: 'from-blue-400 to-cyan-500',
+    featured: false,
+    stock: 500
   },
   { 
     id: '3', 
@@ -29,153 +74,223 @@ const packs = [
     description: 'Premium pack with guaranteed at least 1 rare+ card.',
     dropRates: { common: 10, uncommon: 30, rare: 35, epic: 18, legendary: 7 },
     totalCards: 5,
-    image: '/packs/legendary.png'
+    emoji: '👑',
+    gradient: 'from-yellow-400 to-orange-500',
+    featured: true,
+    stock: 200
   },
   { 
     id: '4', 
     name: 'Neon Genesis', 
-    price: 50, 
-    description: 'Limited cyberpunk collection. Only available 48h!',
+    price: 75, 
+    description: 'Limited cyberpunk collection.',
     dropRates: { common: 25, uncommon: 30, rare: 28, epic: 12, legendary: 5 },
     totalCards: 5,
-    image: '/packs/neon.png',
-    featured: true
+    emoji: '⚡',
+    gradient: 'from-purple-400 to-pink-500',
+    featured: true,
+    stock: 150
+  },
+  { 
+    id: '5', 
+    name: 'Mystic Pack', 
+    price: 35, 
+    description: 'Magical creatures await.',
+    dropRates: { common: 40, uncommon: 30, rare: 20, epic: 8, legendary: 2 },
+    totalCards: 5,
+    emoji: '🔮',
+    gradient: 'from-violet-400 to-purple-600',
+    featured: false,
+    stock: 300
+  },
+  { 
+    id: '6', 
+    name: 'Retro Collection', 
+    price: 25, 
+    description: 'Classic cards from the original era.',
+    dropRates: { common: 45, uncommon: 30, rare: 18, epic: 5, legendary: 2 },
+    totalCards: 5,
+    emoji: '🎮',
+    gradient: 'from-green-400 to-emerald-500',
+    featured: false,
+    stock: 400
   },
 ];
 
 export default function Shop() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedRarity, setSelectedRarity] = useState('all');
+  const [quantity, setQuantity] = useState<{ [key: string]: number }>({});
 
   const filteredPacks = packs.filter(pack => 
     pack.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const getRarityColor = (rarity: string) => {
+    switch (rarity) {
+      case 'legendary': return '#FFE500';
+      case 'epic': return '#A855F7';
+      case 'rare': return '#3B82F6';
+      case 'uncommon': return '#22C55E';
+      default: return '#9CA3AF';
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen pb-20">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold mb-1">Shop</h1>
-          <p className="text-[var(--text-secondary)]">Buy packs and rip for rare cards</p>
+      <div className="py-8 border-b border-[var(--border)] mb-8">
+        <div className="max-w-6xl mx-auto px-6">
+          <RevealSection>
+            <h1 className="font-display text-5xl font-black mb-2">
+              Shop <span className="text-accent">Packs</span>
+            </h1>
+            <p className="text-[var(--text-muted)] text-lg">Buy packs, rip cards, collect 'em all</p>
+          </RevealSection>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={18} />
-          <input
-            type="text"
-            placeholder="Search packs..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-orange-500"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <Filter size={18} className="text-[var(--text-secondary)]" />
-          <select
-            value={selectedRarity}
-            onChange={(e) => setSelectedRarity(e.target.value)}
-            className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg px-4 py-3 focus:outline-none focus:border-orange-500"
-          >
-            <option value="all">All Rarities</option>
-            <option value="common">Starter</option>
-            <option value="rare">Elite</option>
-            <option value="legendary">Legendary</option>
-          </select>
-        </div>
+      <div className="max-w-6xl mx-auto px-6 mb-8">
+        <RevealSection delay={100}>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={20} />
+              <input
+                type="text"
+                placeholder="Search packs..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="input w-full pl-12 py-4 text-lg"
+              />
+            </div>
+            <button className="btn btn-secondary px-6 py-4">
+              <Filter size={20} />
+              Filters
+            </button>
+          </div>
+        </RevealSection>
       </div>
 
       {/* Featured Banner */}
       {filteredPacks.some(p => p.featured) && (
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 p-6">
-          <div className="relative z-10">
-            <span className="bg-orange-500 text-white text-xs px-3 py-1 rounded-full font-medium">
-              LIMITED TIME
-            </span>
-            <h2 className="text-2xl font-bold mt-2">Neon Genesis Collection</h2>
-            <p className="text-white/80 mt-1">Exclusive cyberpunk cards - Only 48 hours!</p>
-          </div>
+        <div className="max-w-6xl mx-auto px-6 mb-8">
+          <RevealSection delay={150}>
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 p-8">
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles size={18} className="text-white" />
+                  <span className="text-sm font-bold uppercase tracking-wider text-white/80">Limited Time</span>
+                </div>
+                <h2 className="font-display text-3xl font-bold mb-2">Neon Genesis Collection</h2>
+                <p className="text-white/80 mb-4">Exclusive cyberpunk cards - Only while supplies last!</p>
+                <div className="flex gap-3">
+                  <span className="px-3 py-1 bg-white/20 rounded-full text-sm">⚡ Epic Guaranteed</span>
+                  <span className="px-3 py-1 bg-white/20 rounded-full text-sm">👑 5% Legendary</span>
+                </div>
+              </div>
+              {/* Decorative */}
+              <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
+            </div>
+          </RevealSection>
         </div>
       )}
 
       {/* Packs Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredPacks.map((pack) => (
-          <div
-            key={pack.id}
-            className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] overflow-hidden hover:border-orange-500/50 transition-all group"
-          >
-            {/* Pack Image */}
-            <div className="aspect-square bg-gradient-to-br from-orange-500/20 to-purple-500/20 relative">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Package size={64} className="text-orange-400/50" />
-              </div>
-              {pack.featured && (
-                <div className="absolute top-3 right-3 bg-orange-500 text-white text-xs px-2 py-1 rounded">
-                  FEATURED
-                </div>
-              )}
-            </div>
-
-            {/* Pack Info */}
-            <div className="p-5">
-              <h3 className="text-xl font-bold mb-1">{pack.name}</h3>
-              <p className="text-sm text-[var(--text-secondary)] mb-4">{pack.description}</p>
-
-              {/* Drop Rates */}
-              <div className="mb-4">
-                <p className="text-xs text-[var(--text-secondary)] mb-2">Drop Rates</p>
-                <div className="flex gap-1">
-                  {Object.entries(pack.dropRates).map(([rarity, rate]) => (
-                    <div
-                      key={rarity}
-                      className="flex-1 h-6 rounded flex items-center justify-center text-xs"
-                      style={{
-                        backgroundColor: 
-                          rarity === 'legendary' ? 'rgba(245, 158, 11, 0.2)' :
-                          rarity === 'epic' ? 'rgba(168, 85, 247, 0.2)' :
-                          rarity === 'rare' ? 'rgba(59, 130, 246, 0.2)' :
-                          rarity === 'uncommon' ? 'rgba(34, 197, 94, 0.2)' :
-                          'rgba(156, 163, 175, 0.2)',
-                        color:
-                          rarity === 'legendary' ? '#f59e0b' :
-                          rarity === 'epic' ? '#a855f7' :
-                          rarity === 'rare' ? '#3b82f6' :
-                          rarity === 'uncommon' ? '#22c55e' :
-                          '#9ca3af'
-                      }}
-                      title={`${rarity}: ${rate}%`}
-                    >
-                      {rate}%
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredPacks.map((pack, i) => (
+            <RevealSection key={pack.id} delay={i * 100}>
+              <div className="card overflow-hidden group">
+                {/* Pack Image */}
+                <div className={`relative aspect-square bg-gradient-to-br ${pack.gradient} p-8 flex items-center justify-center`}>
+                  <span className="text-8xl filter drop-shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                    {pack.emoji}
+                  </span>
+                  
+                  {pack.featured && (
+                    <div className="absolute top-3 left-3 px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full">
+                      <span className="text-xs font-bold uppercase text-white">Featured</span>
                     </div>
-                  ))}
+                  )}
+                  
+                  <div className="absolute top-3 right-3">
+                    <span className="px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full text-sm font-bold">
+                      {pack.stock < 200 ? `Only ${pack.stock} left!` : `${pack.stock} in stock`}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Pack Info */}
+                <div className="p-6">
+                  <h3 className="font-display text-2xl font-bold mb-1">{pack.name}</h3>
+                  <p className="text-[var(--text-muted)] text-sm mb-4">{pack.description}</p>
+
+                  {/* Drop Rates */}
+                  <div className="mb-4">
+                    <p className="text-xs text-[var(--text-muted)] mb-2 uppercase tracking-wider">Drop Rates</p>
+                    <div className="flex gap-1">
+                      {Object.entries(pack.dropRates).map(([rarity, rate]) => (
+                        <div
+                          key={rarity}
+                          className="flex-1 h-8 rounded flex items-center justify-center text-xs font-bold"
+                          style={{
+                            backgroundColor: `${getRarityColor(rarity)}20`,
+                            color: getRarityColor(rarity),
+                          }}
+                          title={`${rarity}: ${rate}%`}
+                        >
+                          {rate}%
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      {Object.keys(pack.dropRates).map(r => (
+                        <span key={r} className="text-[10px] text-[var(--text-muted)] uppercase">{r[0]}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Price & Buy */}
+                  <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-black">{pack.price}</span>
+                      <span className="text-[var(--text-muted)]">USDC</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center bg-[var(--bg-hover)] rounded-lg">
+                        <button 
+                          onClick={() => setQuantity(prev => ({ ...prev, [pack.id]: Math.max(1, (prev[pack.id] || 1) - 1) }))}
+                          className="px-3 py-2 hover:text-accent"
+                        >
+                          -
+                        </button>
+                        <span className="w-8 text-center font-bold">{quantity[pack.id] || 1}</span>
+                        <button 
+                          onClick={() => setQuantity(prev => ({ ...prev, [pack.id]: (prev[pack.id] || 1) + 1 }))}
+                          className="px-3 py-2 hover:text-accent"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <button className="btn btn-primary">
+                        Buy
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              {/* Price & Buy */}
-              <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
-                <div>
-                  <span className="text-2xl font-bold">{pack.price}</span>
-                  <span className="text-[var(--text-secondary)] ml-1">USDC</span>
-                </div>
-                <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-                  Buy
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {filteredPacks.length === 0 && (
-        <div className="text-center py-12">
-          <Package size={48} className="mx-auto text-[var(--text-secondary)] mb-4" />
-          <p className="text-[var(--text-secondary)]">No packs found</p>
+            </RevealSection>
+          ))}
         </div>
-      )}
+
+        {filteredPacks.length === 0 && (
+          <div className="text-center py-20">
+            <span className="text-6xl">🎁</span>
+            <p className="text-xl text-[var(--text-muted)] mt-4">No packs found</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
