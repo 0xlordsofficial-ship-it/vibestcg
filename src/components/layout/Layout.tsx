@@ -4,30 +4,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   Home, ShoppingBag, Package, Swords, Trophy, Wallet, Settings, 
-  Moon, Sun, LogOut, Menu, X, User, Gem, Gift, MessageCircle, ShoppingCart, CreditCard, Users, ChevronRight
+  Moon, Sun, LogOut, Menu, X, User, Gem, Gift, MessageCircle, ShoppingCart, CreditCard, Users, ChevronRight, Plus, Minus
 } from 'lucide-react';
 import { useTheme } from '@/components/providers';
 import { useState } from 'react';
 
-const navItems = [
-  { href: '/', label: 'Home', icon: Home },
-  { href: '/shop', label: 'Shop', icon: ShoppingBag },
-  { href: '/vault', label: 'Vault', icon: Package },
-  { href: '/battle', label: 'Battle', icon: Swords },
-  { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
-  { href: '/wallet', label: 'Wallet', icon: Wallet },
-  { href: '/profile', label: 'Profile', icon: Settings },
-];
-
-// User sidebar items (like Phygitals)
-const userSidebarItems = [
-  { icon: User, label: 'Profile', href: '/profile' },
-  { icon: Package, label: 'Inventory', href: '/vault' },
-  { icon: ShoppingCart, label: 'Orders', href: '#' },
-  { icon: MessageCircle, label: 'Messages', href: '#' },
-  { icon: Gem, label: 'Vault Cards', href: '/vault' },
-  { icon: Gift, label: 'Claim Items', href: '#' },
-  { icon: Users, label: 'Refer & Earn', href: '#' },
+const navLinks = [
+  { href: '/shop', label: 'Packs' },
+  { href: '/battle', label: 'Pack Party' },
+  { href: '/vault', label: 'Marketplace' },
+  { href: '/leaderboard', label: 'Explore' },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -37,99 +23,95 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [userSidebarOpen, setUserSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-[var(--bg)]">
-      {/* Main Content */}
+    <div className="flex min-h-screen bg-[#0a0a1a]">
       <div className="flex-1 min-h-screen">
-        {/* Top Navbar */}
-        <nav className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 h-[72px] bg-[rgba(8,8,26,0.85)] backdrop-blur-xl border-b border-[var(--border)]">
+        {/* Phygitals-style Navbar - Fixed top */}
+        <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 h-16 bg-[#0a0a1a]/95 backdrop-blur-xl border-b border-white/5">
           {/* Logo - Left */}
           <Link href="/" className="flex items-center gap-2">
-            <span className="w-9 h-9 bg-[var(--yellow)] rounded-xl flex items-center justify-center text-xl">🃏</span>
-            <span className="font-['Baloo_2'] font-black text-2xl text-[var(--yellow)]">VibeTCG</span>
+            <span className="font-black text-2xl">VibeTCG</span>
           </Link>
 
-          {/* Desktop Nav Links - Center */}
+          {/* Nav Links - Center */}
           <div className="hidden md:flex items-center gap-8">
-            {navItems.slice(0, 5).map((item) => (
+            {navLinks.map((link) => (
               <Link
-                key={item.href}
-                href={item.href}
-                className={`text-sm font-bold uppercase tracking-widest transition-colors ${
-                  pathname === item.href ? 'text-[var(--yellow)]' : 'text-[var(--muted)] hover:text-[var(--white)]'
+                key={link.href}
+                href={link.href}
+                className={`text-sm font-bold uppercase tracking-wider transition-colors ${
+                  pathname === link.href ? 'text-[#ffe500]' : 'text-white/50 hover:text-white'
                 }`}
               >
-                {item.label}
+                {link.label}
               </Link>
             ))}
           </div>
 
-          {/* Right Side - Wallet + User */}
+          {/* Right Side */}
           <div className="flex items-center gap-4">
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-full hover:bg-[var(--bg-hover)] transition-colors"
-            >
-              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-            
-            {/* Connect Wallet Button (or User Avatar) */}
-            <button className="btn btn-primary text-sm">
-              Connect Wallet
-            </button>
-
-            {/* User Avatar - Opens Sidebar */}
-            <button 
-              onClick={() => setUserSidebarOpen(true)}
-              className="w-10 h-10 bg-gradient-to-br from-[var(--yellow)] to-[var(--coral)] rounded-full flex items-center justify-center font-bold text-black"
-            >
-              U
+            {/* Get Started CTA */}
+            <button className="hidden md:block bg-[#ffe500] hover:bg-[#ffd000] text-black font-bold px-5 py-2 rounded-full text-sm transition-colors">
+              Get Started
             </button>
 
             {/* Mobile Menu Toggle */}
             <button 
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 rounded-lg bg-[var(--bg-hover)]"
+              className="md:hidden p-2 rounded-lg bg-white/5"
             >
               {mobileOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </nav>
 
-        {/* Mobile Nav Overlay */}
+        {/* Mobile Menu */}
         {mobileOpen && (
-          <div className="md:hidden fixed inset-0 z-30 bg-black/50" onClick={() => setMobileOpen(false)} />
+          <div className="md:hidden fixed inset-0 z-40 bg-black/50" onClick={() => setMobileOpen(false)} />
         )}
-
-        {/* Mobile Nav Menu */}
-        <div className={`md:hidden fixed top-[72px] left-0 w-64 h-[calc(100vh-72px)] bg-[var(--bg2)] border-r border-[var(--border)] z-40 transition-transform ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-          <nav className="p-4 space-y-1">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                    isActive ? 'bg-[var(--yellow)] text-black font-bold' : 'text-[var(--muted)] hover:bg-[var(--bg-hover)]'
-                  }`}
-                >
-                  <item.icon size={20} />
-                  {item.label}
-                </Link>
-              );
-            })}
+        <div className={`md:hidden fixed top-16 left-0 w-64 h-[calc(100vh-4rem)] bg-[#0a0a1a] border-r border-white/5 z-40 transition-transform ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <nav className="p-4 space-y-2">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className={`block px-4 py-3 rounded-lg text-sm font-bold uppercase ${
+                  pathname === link.href ? 'bg-[#ffe500] text-black' : 'text-white/50 hover:bg-white/5'
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+            <button className="w-full bg-[#ffe500] text-black font-bold px-4 py-3 rounded-lg mt-4">
+              Get Started
+            </button>
           </nav>
         </div>
 
-        {/* Main Content Area */}
-        <main className="pt-[72px]">
+        {/* Main Content */}
+        <main className="pt-16">
           {children}
         </main>
+
+        {/* Footer */}
+        <footer className="py-12 px-6 border-t border-white/5">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+              <div className="flex items-center gap-4">
+                <span className="font-black text-xl">VibeTCG</span>
+              </div>
+              <div className="flex items-center gap-6 text-sm text-white/40">
+                <a href="#" className="hover:text-white">Terms</a>
+                <a href="#" className="hover:text-white">Privacy</a>
+                <a href="#" className="hover:text-white">Contact</a>
+              </div>
+              <p className="text-sm text-white/30">© 2026 VibeTCG. All rights reserved.</p>
+            </div>
+          </div>
+        </footer>
       </div>
 
-      {/* User Sidebar (Right Side - Like Phygitals) */}
-      {/* Overlay */}
+      {/* User Sidebar (Right) - Phygitals style */}
       {userSidebarOpen && (
         <div 
           className="fixed inset-0 z-50 bg-black/50"
@@ -137,63 +119,70 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* Sidebar Panel */}
-      <div className={`fixed top-0 right-0 h-screen w-80 bg-[var(--bg2)] border-l border-[var(--border)] z-50 transform transition-transform ${userSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-0 right-0 h-screen w-80 bg-[#0a0a1a] border-l border-white/5 z-50 transform transition-transform ${userSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
+        <div className="flex items-center justify-between p-4 border-b border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-[var(--yellow)] to-[var(--coral)] rounded-full flex items-center justify-center font-bold text-black text-lg">
-              U
+            <div className="w-12 h-12 bg-gradient-to-br from-[#ffe500] to-orange-500 rounded-full flex items-center justify-center font-bold text-black">
+              S
             </div>
             <div>
-              <p className="font-bold">User123</p>
-              <p className="text-sm text-[var(--muted)]">Level 1</p>
+              <p className="font-bold">SteelTamer8315</p>
+              <p className="text-xs text-white/50">Level 0</p>
             </div>
           </div>
           <button 
             onClick={() => setUserSidebarOpen(false)}
-            className="p-2 rounded-lg hover:bg-[var(--bg-hover)]"
+            className="p-2 rounded-lg hover:bg-white/5"
           >
             <X size={20} />
           </button>
         </div>
 
-        {/* Wallet Balance */}
-        <div className="p-4 border-b border-[var(--border)]">
+        {/* Wallet */}
+        <div className="p-4 border-b border-white/5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-[var(--muted)]">Wallet</span>
-            <span className="font-black text-lg">$0.00</span>
+            <span className="text-sm text-white/50">Wallet</span>
+            <span className="font-bold">$0.00</span>
           </div>
           <div className="flex gap-2">
-            <button className="flex-1 py-2 px-3 bg-[var(--yellow)] text-black rounded-full font-bold text-sm">
-              Add Funds
+            <button className="flex-1 py-2 bg-[#ffe500] text-black font-bold text-sm rounded-lg">
+              Add
             </button>
-            <button className="flex-1 py-2 px-3 bg-[var(--bg-hover)] rounded-full font-bold text-sm">
+            <button className="flex-1 py-2 bg-white/5 font-bold text-sm rounded-lg">
               Withdraw
             </button>
           </div>
         </div>
 
-        {/* Menu Items */}
+        {/* Menu Items - Exact Phygitals */}
         <nav className="p-2">
-          {userSidebarItems.map((item, i) => (
+          {[
+            { icon: User, label: 'Profile', href: '/profile' },
+            { icon: Package, label: 'Inventory', href: '/vault' },
+            { icon: ShoppingCart, label: 'Orders', href: '#' },
+            { icon: MessageCircle, label: 'Messages', href: '#' },
+            { icon: CreditCard, label: 'Claim Items', href: '#' },
+            { icon: Gem, label: 'Vault Cards', href: '/vault' },
+            { icon: Users, label: 'Refer & Earn', href: '#' },
+          ].map((item, i) => (
             <Link
               key={i}
               href={item.href}
               onClick={() => setUserSidebarOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--bg-hover)] transition-colors"
+              className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 transition-colors"
             >
-              <item.icon size={20} className="text-[var(--muted)]" />
+              <item.icon size={18} className="text-white/50" />
               <span className="flex-1 font-medium">{item.label}</span>
-              <ChevronRight size={16} className="text-[var(--muted)]" />
+              <ChevronRight size={16} className="text-white/30" />
             </Link>
           ))}
         </nav>
 
-        {/* Bottom - Logout */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-[var(--border)]">
-          <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors">
-            <LogOut size={20} />
+        {/* Logout */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/5">
+          <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10">
+            <LogOut size={18} />
             <span className="font-medium">Log Out</span>
           </button>
         </div>
