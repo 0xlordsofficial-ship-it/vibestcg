@@ -5,7 +5,10 @@ import { Trophy, Package, Swords } from 'lucide-react';
 
 type LeaderboardTab = 'packs' | 'battle';
 
-const packsLeaderboard = [
+type PacksEntry = { rank: number; username: string; avatar: string; packs: number; spent: number; winRate: number };
+type BattleEntry = { rank: number; username: string; avatar: string; points: number; earned: number; wins: number; total: number; winRate: number };
+
+const packsLeaderboard: PacksEntry[] = [
   { rank: 1, username: 'CardCollector', avatar: '', packs: 156, spent: 4200, winRate: 72 },
   { rank: 2, username: 'NFTWhale', avatar: '', packs: 142, spent: 3800, winRate: 65 },
   { rank: 3, username: 'CryptoKing', avatar: '', packs: 128, spent: 3400, winRate: 68 },
@@ -18,7 +21,7 @@ const packsLeaderboard = [
   { rank: 10, username: 'BlockchainBoy', avatar: '', packs: 38, spent: 800, winRate: 42 },
 ];
 
-const battleLeaderboard = [
+const battleLeaderboard: BattleEntry[] = [
   { rank: 1, username: 'BattleKing', avatar: '', points: 2500, earned: 1250, wins: 45, total: 52, winRate: 87 },
   { rank: 2, username: 'RipAndDip', avatar: '', points: 2100, earned: 980, wins: 38, total: 48, winRate: 79 },
   { rank: 3, username: 'CardSmasher', avatar: '', points: 1850, earned: 750, wins: 32, total: 45, winRate: 71 },
@@ -123,23 +126,23 @@ export default function Leaderboard() {
 
               {/* Points/Packs */}
               <div className="font-bold">
-                {activeTab === 'packs' ? entry.packs : entry.points}
+                {activeTab === 'packs' ? (entry as PacksEntry).packs : (entry as BattleEntry).points}
                 {activeTab === 'battle' && <span className="text-xs text-[var(--text-secondary)] ml-1">pts</span>}
               </div>
 
               {/* Earned/Spent */}
               <div className={activeTab === 'battle' ? 'text-green-400' : ''}>
-                {activeTab === 'packs' ? `$${entry.spent}` : `$${entry.earned}`}
+                {activeTab === 'packs' ? `$${(entry as PacksEntry).spent}` : `$${(entry as BattleEntry).earned}`}
               </div>
 
               {/* Win Rate */}
               <div className="text-sm">
                 <span className={`px-2 py-1 rounded ${
-                  entry.winRate >= 70 ? 'bg-green-500/20 text-green-400' :
-                  entry.winRate >= 50 ? 'bg-yellow-500/20 text-yellow-400' :
+                  (entry as PacksEntry).winRate >= 70 || (entry as BattleEntry).winRate >= 70 ? 'bg-green-500/20 text-green-400' :
+                  (entry as PacksEntry).winRate >= 50 || (entry as BattleEntry).winRate >= 50 ? 'bg-yellow-500/20 text-yellow-400' :
                   'bg-red-500/20 text-red-400'
                 }`}>
-                  {entry.winRate}%
+                  {activeTab === 'packs' ? (entry as PacksEntry).winRate : (entry as BattleEntry).winRate}%
                 </span>
               </div>
             </div>

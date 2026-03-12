@@ -1,8 +1,8 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { ThemeProvider } from './providers';
-import Sidebar from './components/layout/Sidebar';
-import Header from './components/layout/Header';
+import { ThemeProvider } from '@/components/providers';
+import Sidebar from '@/components/layout/Sidebar';
+import Header from '@/components/layout/Header';
 
 export const metadata: Metadata = {
   title: 'VibeTCG - On-Chain Trading Card Game',

@@ -14,7 +14,7 @@ import {
   Sun,
   LogOut
 } from 'lucide-react';
-import { useTheme } from './providers';
+import { useTheme } from '@/components/providers';
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
