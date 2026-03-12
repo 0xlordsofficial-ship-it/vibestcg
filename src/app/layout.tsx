@@ -1,9 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/providers';
-import Sidebar from '@/components/layout/Sidebar';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
+import Layout from '@/components/layout/Layout';
 
 export const metadata: Metadata = {
   title: 'VibeTCG - Buy. Rip. Collect.',
@@ -19,16 +17,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <ThemeProvider>
-          <div className="flex min-h-screen bg-[var(--bg-primary)]">
-            <Sidebar />
-            <div className="flex-1 lg:ml-64">
-              <Header />
-              <main className="min-h-[calc(100vh-4rem)]">
-                {children}
-              </main>
-              <Footer />
-            </div>
-          </div>
+          <Layout>{children}</Layout>
         </ThemeProvider>
       </body>
     </html>
